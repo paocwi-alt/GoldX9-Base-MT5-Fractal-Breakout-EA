@@ -1,2 +1,77 @@
-# GoldX9-Base-MT5-Fractal-Breakout-EA
-MT5 fractal breakout EA with percentage-based risk management, pending orders, trailing stops, and break-even protection.
+# GoldX9 Base — MT5 分形突破 EA
+
+> 基于“前高/前低突破”的 MetaTrader 5（MT5）EA 基础实现。它按可识别的分形结构设置突破挂单，并用固定止损、止盈和可选的仓位管理规则控制单笔交易。
+
+[rbot.cc](https://rbot.cc/) · [策略源码](./GoldX9_Base.mq5)
+
+## 策略概览
+
+该 EA 从指定周期中寻找已确认的分形高点和低点：
+
+- 在分形高点附近设置 `Buy Stop`，捕捉向上突破；
+- 在分形低点附近设置 `Sell Stop`，捕捉向下突破；
+- 使用距离过滤，避免价格紧贴分形位置时重复或过早挂单；
+- 通过最大挂单数、最大持仓数、订单过期时间和重复价格过滤限制风险暴露；
+- 每笔订单均附带服务器端止损与止盈。
+
+价格距离采用百分比而不是固定点数，因此在不同报价水平的品种上更易于调整。不过，点差、最小止损距离、合约规格和流动性仍会显著影响实际结果。
+
+## 已实现功能
+
+- 分形高点/低点扫描（左右 K 线数量可配置）
+- Buy Stop / Sell Stop 突破入场
+- 百分比入场偏移、止损与止盈
+- 挂单过期、最大挂单数和最大持仓数控制
+- 同方向重复挂单价格过滤
+- 固定手数或按账户权益百分比风险计算手数
+- 保本、移动止损与 Salvage（亏损回撤时收紧目标）管理
+- Magic Number 与订单注释隔离
+
+## 安装
+
+1. 下载 [GoldX9_Base.mq5](./GoldX9_Base.mq5)。
+2. 将文件复制到 MT5 数据目录的 `MQL5/Experts/`。
+3. 使用 MetaEditor 编译，确认没有错误后将 EA 挂到目标品种图表。
+4. 在 MT5 策略测试器中，以目标经纪商的真实合约规格、点差和历史数据进行测试。
+5. 先在模拟账户验证，再决定是否部署到实盘。
+
+## 核心参数
+
+| 参数 | 默认值 | 含义 |
+| --- | ---: | --- |
+| `InpFractalTF` | `H1` | 用于识别市场结构的周期 |
+| `InpFractalLeft` / `InpFractalRight` | `5 / 5` | 分形两侧需确认的 K 线数 |
+| `InpMaxSearchBars` | `200` | 回看并搜索分形的最大 K 线数 |
+| `InpMinFractalClearancePct` | `0.02%` | 现价与分形之间的最小距离 |
+| `InpBuyEntryOffsetPct` / `InpSellEntryOffsetPct` | `-0.10% / -0.10%` | 相对于分形高低点的挂单偏移 |
+| `InpStopLossPct` | `2.00%` | 以入场价计算的止损距离 |
+| `InpTakeProfitPct` | `1.00%` | 以入场价计算的止盈距离 |
+| `InpTrailTriggerPct` / `InpTrailDistancePct` | `0.20% / 0.20%` | 启动移动止损的盈利阈值及跟随距离 |
+| `InpBreakEvenTriggerPct` / `InpBreakEvenLockPct` | `0.10% / 0.025%` | 保本触发条件与锁定利润 |
+| `InpRiskPercent` | `0.50%` | 风险手数模式下的单笔理论风险比例 |
+
+> `InpBuyEntryOffsetPct` 或 `InpSellEntryOffsetPct` 为负值时，订单会放在分形点的“提前突破”一侧；设置时应结合品种最小挂单距离与实际点差测试。
+
+## 风控与回测说明
+
+本项目不是马丁格尔策略，也不会对亏损头寸加仓；但这不代表没有风险。分形突破策略可能在震荡市连续触发假突破，且历史回测不代表未来表现。
+
+建议至少完成以下检查：
+
+- 用“每个基于真实点的点”或尽可能高质量的 tick 数据回测；
+- 分别测试不同年份、趋势市和震荡市；
+- 使用目标经纪商的点差、佣金、隔夜费和最小止损距离；
+- 对参数做样本外验证，避免只优化某一个历史区间；
+- 控制 `InpRiskPercent`、`InpMaxPending` 与 `InpMaxPositions`，使总暴露符合账户风险承受能力。
+
+## 当前范围
+
+此仓库实现的是单一“基础策略”版本。原始教程描述了最终产品可能包含多个不同参数组合的策略、分层仓位系统和图形面板；这些内容并未在当前源码中作为已验证功能提供。
+
+## 免责声明
+
+本项目仅用于研究、学习和策略测试，不构成投资建议或收益承诺。自动交易存在本金损失风险；使用者应自行验证代码、理解经纪商规则，并对交易决策负责。
+
+## 相关链接
+
+- [rbot.cc](https://rbot.cc/)
